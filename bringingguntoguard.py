@@ -71,11 +71,8 @@ def answer(dimensions, your_position, guard_position, distance):
     def dist(A, B):
         return m.sqrt(pow(A[0] - B[0], 2) + pow(A[1] - B[1], 2))
 
-
     def is_between(a,c, b):
-        if c[0] == a[0] and c[1] == a[1]:
-            return False
-        if c[0] == b[0] and b[1] == c[1]:
+        if isEqual(a, c) and isEqual(b, c):
             return False
         return ( dist(a,c) + dist(c,b) )== dist(a,b)
 
@@ -84,6 +81,9 @@ def answer(dimensions, your_position, guard_position, distance):
         if D > 0:
             return ( (A[0] - B[0]) / D, (A[1] - B[1]) / D)
         return ( (A[0] - B[0]) , (A[1] - B[1]) )
+
+    def isEqual(A,B):
+        return A[0] == B[0] and A[1] == B[1]
 
     L, R = guard_position[0], dimensions[0] - guard_position[0]
     T, B = dimensions[1] - guard_position[1], guard_position[1]
@@ -110,10 +110,10 @@ def answer(dimensions, your_position, guard_position, distance):
             if D <= distance:
                 vec = getVector(your_position, guard_new_pos, D)
                 cvec = getVector(your_position, your_new_pos, C)
-                if vec in cache or cvec in cache or cvec == vec:
+                if `vec` in cache or `cvec` in cache or isEqual(cvec, vec):
                     continue
                 else:
-                    cache[vec] = True
+                    cache[`vec`] = True
                     count +=1
     return count
 
