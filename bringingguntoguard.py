@@ -67,56 +67,87 @@ If your solution passes the test cases, it will be removed from your home folder
 import math as m
 
 def answer(dimensions, your_position, guard_position, distance):
+    def gcd(a, b):
+        while b:
+            a, b = b, a%b
+        return a
 
-    def dist(A, B):
-        return m.sqrt(pow(A[0] - B[0], 2) + pow(A[1] - B[1], 2))
+    def magsqr(A):
+        return (pow(A[0], 2) + pow(A[1], 2))
 
-    def is_between(a,c, b):
-        if isEqual(a, c) and isEqual(b, c):
-            return False
-        return ( dist(a,c) + dist(c,b) )== dist(a,b)
+    def simplifyVector(A):
+        # gcd cannot handle if any number is 0
+        abs0 = abs(A[0])
+        abs1 = abs(A[1])
+        if ((A[0]==0) and (A[1]==0)):
+            return (0, 0)
+        if (A[0]==0):
+            return (0, A[1]/abs1 )
+        if (A[1]==0):
+            return ( A[0]/abs0 ,0)
+        vecgcd = gcd(abs0,abs1)
+        return ( A[0]/vecgcd , A[1]/vecgcd )
 
+    # direction vector (string of (int,int)) -> distance^2 to closest guard copy along that direction
+    guardDirections = {}
+    # direction vector (string of (int,int)) -> distance^2 to closest captain copy along that direction
+    yourDirections = {}
 
-    def getVector(A,B,D):
-        if D > 0:
-            return ( (A[0] - B[0]) / D, (A[1] - B[1]) / D)
-        return ( (A[0] - B[0]) , (A[1] - B[1]) )
-
-    def isEqual(A,B):
-        return A[0] == B[0] and A[1] == B[1]
-
-    L, R = guard_position[0], dimensions[0] - guard_position[0]
-    T, B = dimensions[1] - guard_position[1], guard_position[1]
-
+    gL, gR, gT, gB = guard_position[0], dimensions[0] - guard_position[0], dimensions[1] - guard_position[1], guard_position[1]
     mL, mR, mT, mB = your_position[0], dimensions[0] - your_position[0], dimensions[1] - your_position[1], your_position[1]
-    count = 0
 
+    # Create dictionary of guardDirections and yourDirections as described
     row_range, column_range = distance/dimensions[0], distance/dimensions[1]
-    cache = {}
-    for x in xrange(-row_range-2, row_range+2):
-        for y in xrange(-column_range-2, column_range+2):
-            hstep = m.ceil(x*0.5)*2*R + m.floor(x*0.5)*2*L
-            vstep = m.ceil(y*0.5)*2*T + m.floor(y*0.5)*2*B
+    for x in xrange(-row_range-1, row_range+1):
+        for y in xrange(-column_range-1, column_range+1):
+            gHstep = int(m.ceil(x*0.5)*2*gR + m.floor(x*0.5)*2*gL)
+            gVstep = int(m.ceil(y*0.5)*2*gT + m.floor(y*0.5)*2*gB)
+            mHstep = int(m.ceil(x*0.5)*2*mR + m.floor(x*0.5)*2*mL)
+            mVstep = int(m.ceil(y*0.5)*2*mT + m.floor(y*0.5)*2*mB)
 
-            mhstep = m.ceil(x*0.5)*2*mR + m.floor(x*0.5)*2*mL
-            mvstep = m.ceil(y*0.5)*2*mT + m.floor(y*0.5)*2*mB
-            guard_new_pos = (guard_position[0] + hstep, guard_position[1] + vstep)
-            your_new_pos = (your_position[0] + mhstep, your_position[1] + mvstep)
+            # Note these "positions" are actually "directions" and have origin at your_position
+            guard_new_pos = (guard_position[0] + gHstep - your_position[0], guard_position[1] + gVstep - your_position[1])
+            your_new_pos = (mHstep, mVstep)
 
-            crossed_captain = is_between(your_position, your_new_pos, guard_new_pos)
-            crossed_guard = is_between(your_position, guard_position, guard_new_pos)
-            D = dist(your_position, guard_new_pos)
-            C = dist(your_position, your_new_pos)
-            if D <= distance:
-                vec = getVector(your_position, guard_new_pos, D)
-                cvec = getVector(your_position, your_new_pos, C)
-                if `vec` in cache or `cvec` in cache or isEqual(cvec, vec):
-                    continue
+            
+            guard_new_pos_magsqr = magsqr(guard_new_pos)
+            your_new_pos_magsqr = magsqr(your_new_pos)
+
+            if (guard_new_pos_magsqr <= distance*distance):
+                guard_new_pos_dir = simplifyVector(guard_new_pos)
+                if `guard_new_pos_dir` in guardDirections:
+                    if (guardDirections[`guard_new_pos_dir`] > guard_new_pos_magsqr):
+                        guardDirections[`guard_new_pos_dir`] = guard_new_pos_magsqr
                 else:
-                    cache[`vec`] = True
-                    count +=1
+                    guardDirections[`guard_new_pos_dir`] = guard_new_pos_magsqr
+
+            if ( (your_new_pos_magsqr <= distance*distance) and (your_new_pos_magsqr > 0) ):
+                your_new_pos_dir = simplifyVector(your_new_pos)
+                if `your_new_pos_dir` in yourDirections:
+                    if (yourDirections[`your_new_pos_dir`] > your_new_pos_magsqr):
+                        yourDirections[`your_new_pos_dir`] = your_new_pos_magsqr
+                else:
+                    yourDirections[`your_new_pos_dir`] = your_new_pos_magsqr
+     
+    #print 'guardDirections',guardDirections
+    #print 'yourDirections',yourDirections
+
+    # Count valid guard positions:
+    # If there is a direction to a guard copy with no captain copy on it or
+    # has the closest guard copy closer than the closest captain copy then
+    # is counted as a valid firing direction
+    count = 0 
+    for guarddir, mindistsqr in guardDirections.iteritems():
+        if guarddir in yourDirections:
+            if (yourDirections[guarddir] > mindistsqr):
+                count += 1
+                #print 'hitguard:',guarddir
+            #else:
+                #print 'hitme:',guarddir
+        else:
+            #print 'hitguard:',guarddir
+            count+=1
+
     return count
 
-print answer( [3, 2], [1, 1],[2, 1], 4)
-print answer( [300, 275],  [150, 150], [185, 100], 500)
-#print answer( [1000, 1000],  [999, 999], [998, 999], 10000)
+#print answer([300,275], [150,150], [185,100], 500)
