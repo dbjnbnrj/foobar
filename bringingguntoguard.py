@@ -97,7 +97,7 @@ def answer(dimensions, your_position, guard_position, distance):
     mL, mR, mT, mB = your_position[0], dimensions[0] - your_position[0], dimensions[1] - your_position[1], your_position[1]
 
     # Create dictionary of guardDirections and yourDirections as described
-    row_range, column_range = distance/dimensions[0], distance/dimensions[1]
+    row_range, column_range = distance/(dimensions[0]-1), distance/(dimensions[1]-1)
     for x in xrange(-row_range-1, row_range+1):
         for y in xrange(-column_range-1, column_range+1):
             gHstep = int(m.ceil(x*0.5)*2*gR + m.floor(x*0.5)*2*gL)
