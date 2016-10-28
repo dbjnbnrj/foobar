@@ -2,13 +2,39 @@
 Running with Bunnies
 ====================
 
-You and your rescued bunny prisoners need to get out of this collapsing death trap of a space station - and fast! Unfortunately, some of the bunnies have been weakened by their long imprisonment and can't run very fast. Their friends are trying to help them, but this escape would go a lot faster if you also pitched in. The defensive bulkhead doors have begun to close, and if you don't make it through in time, you'll be trapped! You need to grab as many bunnies as you can and get through the bulkheads before they close.
+You and your rescued bunny prisoners need to get out of this collapsing death trap of a space station -
+and fast! Unfortunately, some of the bunnies have been weakened by their long imprisonment and can't run very fast.
+Their friends are trying to help them, but this escape would go a lot faster if you also pitched in.
+The defensive bulkhead doors have begun to close, and if you don't make it through in time,
+you'll be trapped! You need to grab as many bunnies as you can and get through the bulkheads before they close.
 
-The time it takes to move from your starting point to all of the bunnies and to the bulkhead will be given to you in a square matrix of integers. Each row will tell you the time it takes to get to the start, first bunny, second bunny, ..., last bunny, and the bulkhead in that order. The order of the rows follows the same pattern (start, each bunny, bulkhead). The bunnies can jump into your arms, so picking them up is instantaneous, and arriving at the bulkhead at the same time as it seals still allows for a successful, if dramatic, escape. (Don't worry, any bunnies you don't pick up will be able to escape with you since they no longer have to carry the ones you did pick up.) You can revisit different spots if you wish, and moving to the bulkhead doesn't mean you have to immediately leave - you can move to and from the bulkhead to pick up additional bunnies if time permits.
+The time it takes to move from your starting point to all of the bunnies
+and to the bulkhead will be given to you in a square matrix of integers.
+Each row will tell you the time it takes to get to the start, first bunny, second bunny, ...,
+last bunny, and the bulkhead in that order. The order of the rows follows the same pattern
+(start, each bunny, bulkhead). The bunnies can jump into your arms, so picking them up is instantaneous,
+and arriving at the bulkhead at the same time as it seals still allows for a successful, if dramatic, escape.
+(Don't worry, any bunnies you don't pick up will be able to escape with you since they no longer
+have to carry the ones you did pick up.)
+You can revisit different spots if you wish,
+and moving to the bulkhead doesn't mean you have to immediately leave
+- you can move to and from the bulkhead to pick up additional bunnies if time permits.
 
-In addition to spending time traveling between bunnies, some paths interact with the space station's security checkpoints and add time back to the clock. Adding time to the clock will delay the closing of the bulkhead doors, and if the time goes back up to 0 or a positive number after the doors have already closed, it triggers the bulkhead to reopen. Therefore, it might be possible to walk in a circle and keep gaining time: that is, each time a path is traversed, the same amount of time is used or added.
+In addition to spending time traveling between bunnies, some paths interact with the space station's
+security checkpoints and add time back to the clock. Adding time to the clock will delay the
+closing of the bulkhead doors, and if the time goes back up to
+0 or a positive number after the doors have already closed,
+it triggers the bulkhead to reopen.
+Therefore, it might be possible to walk in a circle and keep gaining time:
+that is, each time a path is traversed, the same amount of time is used or added.
 
-Write a function of the form answer(times, time_limit) to calculate the most bunnies you can pick up and which bunnies they are, while still escaping through the bulkhead before the doors close for good. If there are multiple sets of bunnies of the same size, return the set of bunnies with the lowest prisoner IDs (as indexes) in sorted order. The bunnies are represented as a sorted list by prisoner ID, with the first bunny being 0. There are at most 5 bunnies, and time_limit is a non-negative integer that is at most 999.
+Write a function of the form answer(times, time_limit)
+to calculate the most bunnies you can pick up and which bunnies they are,
+while still escaping through the bulkhead before the doors close for good.
+If there are multiple sets of bunnies of the same size, return the set of bunnies with the lowest prisoner IDs
+(as indexes) in sorted order. The bunnies are represented as a sorted list by prisoner ID,
+with the first bunny being 0.
+There are at most 5 bunnies, and time_limit is a non-negative integer that is at most 999.
 
 For instance, in the case of
 [
@@ -18,7 +44,9 @@ For instance, in the case of
   [9, 3, 2, 0, -1],  # 3 = Bunny 2
   [9, 3, 2, 2,  0],  # 4 = Bulkhead
 ]
-and a time limit of 1, the five inner array rows designate the starting point, bunny 0, bunny 1, bunny 2, and the bulkhead door exit respectively. You could take the path:
+
+and a time limit of 1, the five inner array rows designate the starting point,
+bunny 0, bunny 1, bunny 2, and the bulkhead door exit respectively. You could take the path:
 
 Start End Delta Time Status
     -   0     -    1 Bulkhead initially open
@@ -28,7 +56,8 @@ Start End Delta Time Status
     4   3     2   -1 Bulkhead closes
     3   4    -1    0 Bulkhead reopens; you and the bunnies exit
 
-With this solution, you would pick up bunnies 1 and 2. This is the best combination for this space station hallway, so the answer is [1, 2].
+With this solution, you would pick up bunnies 1 and 2.
+This is the best combination for this space station hallway, so the answer is [1, 2].
 
 Languages
 =========
@@ -51,3 +80,44 @@ Inputs:
 Output:
     (int list) [1, 2]
 '''
+
+def answer(time, time_limit):
+    N = len(time[0])
+    d = [[10000 for y in range(N)] for x in range(N)]
+    for i in range(N):
+        for j in range(N):
+            if i == j:
+                d[i][j] = 0
+
+    for m in range(N):
+        for k in range(N-1):
+            for i in range(N):
+                for j in range(N):
+                    d[m][i] = min(d[m][i], d[m][j] + time[j][i])
+    from itertools import combinations, permutations
+    input = range(1, N-1)
+    subsets = sum([map(list, combinations(input, i)) for i in range(N)], [])
+
+    def getSum(subset):
+        prev, add = 0, 0
+        for s in subset:
+            add += d[prev][s]
+            prev = s
+        return add + d[prev][N-1]
+
+    print d
+    result = []
+    for subset in subsets:
+        for ssubset in permutations(subset):
+            time_taken = getSum(ssubset)
+            if len(ssubset) > 0 and time_taken < 0 :
+                return range(0, N-2)
+            if time_taken <= time_limit and len(subset) > len(result):
+                result = subset
+    return sorted([r-1 for r in result])
+
+
+
+#print maxsubset([1,2,3,4], 4, 3)
+print answer([[0, 1, 1, 1, 1], [1, 0, 1, 1, 1], [1, 1, 0, 1, 1], [1, 1, 1, 0, 1], [1, 1, 1, 1, 0]], 3)
+print answer([[0, 2, 2, 2, -1], [9, 0, 2, 2, -1], [9, 3, 0, 2, -1], [9, 3, 2, 0, -1], [9, 3, 2, 2, 0]], 1)
