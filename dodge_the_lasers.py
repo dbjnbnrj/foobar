@@ -40,3 +40,43 @@ Output:
 
 Use verify [file] to test your solution and see how it does. When you are finished editing your code, use submit [file] to submit your answer. If your solution passes the test cases, it will be removed from your home folder.
 '''
+
+# https://en.wikipedia.org/wiki/Beatty_sequence
+# Compliment of Beatty Sequence floor(n*sqrt(2)) is floor(n*(2 + sqrt(2))) or 2*n+floor(n*sqrt(2))
+# https://oeis.org/A001951
+# https://oeis.org/A001952
+# Thus (handwavy) recurrence: {sequence} = {all numbers} - {2*n+sequence}!
+# Therefore grow the sequence iteratively and exponentially
+from collections import deque
+import math as m
+
+def answer(str_n):
+    n = int(str_n)
+    if (n>m.pow(10,15)):
+        return 0
+    if (n==0):
+        return 0
+    if (n==1):
+        return 1
+    if (n==2):
+        return 3
+
+    count_so_far = 2
+    sum_so_far = 3     # Sum from floor(1*sqrt(2)) till floor(count_so_far*sqrt(2))
+
+    second = 3
+    comp = deque([6])
+    
+    while True:
+        first = second
+        second = comp.popleft()
+
+        for x in xrange(first+1,second):
+            count_so_far += 1
+            sum_so_far += x
+            comp.append(2*count_so_far+x)
+
+            if(count_so_far >= n):
+                return sum_so_far;
+
+    return sum_so_far
