@@ -117,4 +117,4 @@ def answer(str_n):
 print answer("5")
 print answer("77")
 print answer("775")
-print answer(`pow(10, 6)`)
+print answer(`pow(10, 16)`)
