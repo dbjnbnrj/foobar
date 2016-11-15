@@ -43,78 +43,67 @@ Output:
     (string) "4208"
 
 Use verify [file] to test your solution and see how it does. When you are finished editing your code, use submit [file] to submit your answer. If your solution passes the test cases, it will be removed from your home folder.
+
+
+
+    for i in xrange(N+1):
+        s+=LW(i)
 '''
 
+import math as m
+from decimal import *
 
-import math as m
-import time as t
-import math as m
-import time as t
+getcontext().prec = 1000
+
+sq = Decimal(2).sqrt()
+LW = lambda x : Decimal(Decimal(x) * sq).quantize(Decimal('1.'), rounding=ROUND_DOWN)
+UW = lambda x : Decimal(Decimal(x) * (sq+2)).quantize(Decimal('1.'), rounding=ROUND_DOWN)
+
+
+def getSum(num):
+    return num*(num+1)/2
+
+def getMid(N):
+    mid = long(N*sq/(2+sq))
+    #print mid, UW(mid), LW(N)
+    return mid
+
+def getResult1(N):
+    result= 0
+    for i in xrange(N+1):
+        result+= LW(i)
+    return result
+
+def getResult2(N, N1, N2):
+    return getSum(LW(N)) - getSum(N1)*2 - N2
+
+def getResult(N, M):
+    return getSum(LW(N)) - sum([UW(i) for i in range(M)])
+
 def answer(str_n):
-    if len(str_n) > 18:
-        return 0
-    N = int(str_n)
-    LW = lambda x : m.floor(x*m.sqrt(2))
-    UW = lambda x : m.floor(x*(2+m.sqrt(2)))
-
-    def getSum(num):
-        return num*(num+1)/2
-
-    def getMid(N):
-        #print m.log(N, 10)
-        start, end= 0, N
-        mid = m.floor((end + start)/2)
-        num = LW(N)
-        steps = 0
-        while True:
-            if start > end:
-                break
-            steps +=1
-            mid = m.floor((end + start)/2)
-            if UW(mid) < num < UW(mid+1):
-                print 'steps; ',steps, N
-                return int(mid)
-            elif UW(mid) < num:
-                start = mid + 1
-            else:
-                end = mid - 1
-
-        return int(mid)
-
-    def getResult(x, y):
-        return getSum(LW(x)) - sum([UW(i) for i in range(y+1)])
+    N = long(str_n)
 
     mid = getMid(N)
     A = [N, mid]
-    #print N, mid
-    LIM = pow(10, 6)
-    if mid < LIM:
-        result = getSum(LW(N)) - mid*(mid+1) - sum([LW(i) for i in range(mid+1)])
+    LIM = pow(10,4)
+    result = 0
+
+    if mid <= LIM:
+        result = getSum(LW(N)) -sum([UW(i) for i in xrange(mid+1)])
     else:
-        mid = getMid(N)
-        A = [N, mid]
-        while mid >= LIM:
+        while mid > LIM:
             mid = getMid(mid)
             A+= [mid]
+        N1 = A[-1]
+        temp = getResult2(A[-2], A[-1], sum([LW(i) for i in xrange(N1+1)]))
+        A.pop()
 
-        mid1, num1 = A.pop(), A.pop()
-        #print mid1, num1
-        temp1 = getSum(LW(num1)) - mid1*(mid1+1) - sum([LW(i) for i in range(mid1 +1)])
-        A+=[num1]
         while len(A) > 1:
-            #print A
-            mid2, num2 = A.pop(), A.pop()
-            temp2 = getSum(LW(num2)) - mid2*(mid2+1) - temp1
-            temp1 = temp2
-            A+=[num2]
-        result = temp1
-    s = '%d' % result
-    return s.rstrip('.0')
-    #return temp1
+            N1 = A[-1]
+            result = getResult2(A[-2], A[-1], temp)
+            temp = result
+            A.pop()
 
+    return '{0:f}'.format(result)
 
-
-print answer("5")
-print answer("77")
-print answer("775")
-print answer(`pow(10, 16)`)
+print answer(10**100)
