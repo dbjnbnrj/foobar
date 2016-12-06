@@ -110,13 +110,29 @@ Inputs:
     (int) s = 4
 Output:
     (string) "430"
+
 '''
-import itertools as it
+
+
+import math as m
+import fractions as frac
+import itertools
+f = m.factorial
+p = m.pow
+g = frac.gcd
 
 def answer(w, h, s):
-    p = it.product(range(0, s),repeat=2)
-    for m in p:
-        print m
+    D = f(w) * f(h)
 
+    def calculate(s, x, y):
+        return s ** ((w - x + 1) * (h - y + 1) * g(x,y))
 
-answer(2, 2, 2)
+    N = 0
+    for x in xrange(1, w+1):
+        for y in xrange(1, h+1):
+            N += calculate(s, x, y)
+
+    return int(N / D)
+
+print answer(2, 2, 2)
+print answer(2, 3, 4)
